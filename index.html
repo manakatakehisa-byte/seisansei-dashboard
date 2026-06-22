@@ -1,177 +1,32 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>生産性ダッシュボード</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:sans-serif;background:#f4f6f9;color:#222;min-height:100vh;padding:1.5rem}
-h1{font-size:20px;font-weight:500;margin-bottom:1.5rem;display:flex;align-items:center;gap:8px}
-.filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem;padding:1rem;background:#fff;border:1px solid #e0e0e0;border-radius:12px}
-.filter-group{display:flex;flex-direction:column;gap:4px;min-width:120px}
-.filter-group label{font-size:12px;color:#666}
-select,input[type=date]{font-size:13px;padding:5px 8px;border-radius:8px;border:1px solid #ddd;background:#f9f9f9;color:#222;width:100%}
-.btn{font-size:13px;padding:6px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#222;cursor:pointer;align-self:flex-end}
-.btn:hover{background:#f0f0f0}
-.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem}
-.mc{background:#fff;border-radius:8px;padding:1rem;border:1px solid #e0e0e0}
-.mc-label{font-size:12px;color:#888;margin-bottom:6px}
-.mc-value{font-size:24px;font-weight:500}
-.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.5rem}
-.chart-card{background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:1rem}
-.chart-title{font-size:13px;color:#888;margin-bottom:12px;font-weight:500}
-.chart-box{position:relative;width:100%;height:200px}
-.table-card{background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:1rem;overflow-x:auto}
-.table-title{font-size:13px;color:#888;margin-bottom:12px;font-weight:500}
-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
-th{text-align:left;padding:8px 10px;border-bottom:1px solid #eee;color:#888;font-weight:500;font-size:12px}
-td{padding:8px 10px;border-bottom:1px solid #f0f0f0;color:#222}
-tr:last-child td{border-bottom:none}
-.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#E6F1FB;color:#0C447C}
-.empty{color:#aaa;font-size:13px;padding:1rem 0;text-align:center}
-@media(max-width:600px){.charts{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
-</style>
-</head>
-<body>
-
-<h1><i class="ti ti-chart-bar"></i>生産性ダッシュボード</h1>
-
-<div class="filters">
-  <div class="filter-group">
-    <label>名前</label>
-    <select id="fName"><option value="">すべて</option></select>
-  </div>
-  <div class="filter-group">
-    <label>月</label>
-    <select id="fMonth"><option value="">すべて</option></select>
-  </div>
-  <div class="filter-group">
-    <label>開始日</label>
-    <input type="date" id="fStart">
-  </div>
-  <div class="filter-group">
-    <label>終了日</label>
-    <input type="date" id="fEnd">
-  </div>
-  <div class="filter-group">
-    <label>&nbsp;</label>
-    <button class="btn" onclick="applyFilters()"><i class="ti ti-filter"></i> 絞り込む</button>
-  </div>
-  <div class="filter-group">
-    <label>&nbsp;</label>
-    <button class="btn" onclick="loadData()"><i class="ti ti-refresh"></i> 更新</button>
-  </div>
-</div>
-
-<div class="metrics">
-  <div class="mc"><div class="mc-label">合計数量</div><div class="mc-value" id="mQty">—</div></div>
-  <div class="mc"><div class="mc-label">件数</div><div class="mc-value" id="mCount">—</div></div>
-  <div class="mc"><div class="mc-label">作業者数</div><div class="mc-value" id="mNames">—</div></div>
-</div>
-
-<div class="charts">
-  <div class="chart-card">
-    <div class="chart-title">名前別 数量</div>
-    <div class="chart-box"><canvas id="chart1" role="img" aria-label="名前別数量">名前別数量</canvas></div>
-  </div>
-  <div class="chart-card">
-    <div class="chart-title">日別 数量推移</div>
-    <div class="chart-box"><canvas id="chart2" role="img" aria-label="日別数量推移">日別数量推移</canvas></div>
-  </div>
-</div>
-
-<div class="table-card">
-  <div class="table-title">明細</div>
-  <table>
-    <thead>
-      <tr>
-        <th style="width:90px">日付</th>
-        <th style="width:110px">種別</th>
-        <th style="width:80px">名前</th>
-        <th style="width:60px">数量</th>
-        <th>備考</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"><tr><td colspan="5" class="empty">読み込み中...</td></tr></tbody>
-  </table>
-</div>
-
-<script>
-const API = 'https://script.google.com/a/macros/waterair.jp/s/AKfycbwiOqQt-jSpb8GtYUylb35Cu5Ev7rNYhz1e-SlqYQW5Vbq6wlsWKdQzSFfbNo5psTdnsw/exec';
-let all = [], c1, c2;
-
-async function loadData() {
-  document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="empty">読み込み中...</td></tr>';
-  try {
-    const r = await fetch(API);
-    all = await r.json();
-    all = all.filter(d => d.name && d.name !== 'false' && d.date);
-    populateFilters();
-    applyFilters();
-  } catch(e) {
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="empty">読み込みエラー</td></tr>';
+function doGet(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('生産性（新）');
+  const data = sheet.getDataRange().getValues();
+  
+  const result = [];
+  for (let i = 2; i < data.length; i++) {
+    const row = data[i];
+    if (!row[0] || typeof row[0] === 'string') continue;
+    if (!row[2] || row[2] === '') continue;
+    
+    let timeHours = 0;
+    if (row[5] instanceof Date) {
+      timeHours = row[5].getHours() + row[5].getMinutes() / 60;
+    } else if (typeof row[5] === 'number') {
+      timeHours = row[5] * 24;
+    }
+    
+    result.push({
+      date: Utilities.formatDate(new Date(row[0]), 'Asia/Tokyo', 'yyyy/MM/dd'),
+      type: String(row[1] || ''),
+      name: String(row[2] || ''),
+      quantity: Number(row[3] || 0),
+      note: String(row[4] || ''),
+      time: timeHours
+    });
   }
+  
+  const output = ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+  return output;
 }
-
-function populateFilters() {
-  const names = [...new Set(all.map(d => d.name))].sort();
-  document.getElementById('fName').innerHTML = '<option value="">すべて</option>' + names.map(n => `<option>${n}</option>`).join('');
-  const months = [...new Set(all.map(d => d.date.slice(0,7)))].sort();
-  document.getElementById('fMonth').innerHTML = '<option value="">すべて</option>' + months.map(m => {
-    const [y,mo] = m.split('/');
-    return `<option value="${m}">${y}年${parseInt(mo)}月</option>`;
-  }).join('');
-}
-
-function applyFilters() {
-  const name = document.getElementById('fName').value;
-  const month = document.getElementById('fMonth').value;
-  const start = document.getElementById('fStart').value;
-  const end = document.getElementById('fEnd').value;
-  let f = all.filter(d => {
-    if (name && d.name !== name) return false;
-    if (month && !d.date.startsWith(month)) return false;
-    if (start && d.date < start.replace(/-/g,'/')) return false;
-    if (end && d.date > end.replace(/-/g,'/')) return false;
-    return true;
-  });
-  renderMetrics(f);
-  renderTable(f);
-  renderCharts(f);
-}
-
-function renderMetrics(f) {
-  document.getElementById('mQty').textContent = Math.round(f.reduce((s,d) => s+(Number(d.quantity)||0),0)).toLocaleString();
-  document.getElementById('mCount').textContent = f.length;
-  document.getElementById('mNames').textContent = new Set(f.map(d=>d.name)).size;
-}
-
-function renderTable(f) {
-  const tbody = document.getElementById('tbody');
-  if (!f.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">データがありません</td></tr>'; return; }
-  tbody.innerHTML = f.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(d =>
-    `<tr><td>${d.date}</td><td><span class="badge">${d.type||''}</span></td><td>${d.name}</td><td>${Math.round(d.quantity||0).toLocaleString()}</td><td style="color:#888">${d.note||''}</td></tr>`
-  ).join('');
-}
-
-function renderCharts(f) {
-  const byName={};
-  f.forEach(d=>{byName[d.name]=(byName[d.name]||0)+(Number(d.quantity)||0);});
-  const names=Object.keys(byName).sort();
-  if(c1)c1.destroy();
-  c1=new Chart(document.getElementById('chart1'),{type:'bar',data:{labels:names,datasets:[{label:'数量',data:names.map(n=>Math.round(byName[n])),backgroundColor:'#378ADD',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
-
-  const byDate={};
-  f.forEach(d=>{byDate[d.date]=(byDate[d.date]||0)+(Number(d.quantity)||0);});
-  const dates=Object.keys(byDate).sort();
-  if(c2)c2.destroy();
-  c2=new Chart(document.getElementById('chart2'),{type:'line',data:{labels:dates.map(d=>d.slice(5)),datasets:[{label:'数量',data:dates.map(d=>Math.round(byDate[d])),borderColor:'#1D9E75',backgroundColor:'#E1F5EE',tension:0.3,fill:true,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
-}
-
-loadData();
-</script>
-</body>
-</html>
