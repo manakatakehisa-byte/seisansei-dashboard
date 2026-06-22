@@ -8,31 +8,30 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:sans-serif;background:#f4f6f9;color:#222;min-height:100vh;padding:1.5rem}
-h1{font-size:20px;font-weight:500;margin-bottom:1.5rem;display:flex;align-items:center;gap:8px}
-.filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem;padding:1rem;background:#fff;border:1px solid #e0e0e0;border-radius:12px}
+body{font-family:sans-serif;background:#f0eef8;color:#2d2640;min-height:100vh;padding:1.5rem}
+h1{font-size:20px;font-weight:500;margin-bottom:1.5rem;display:flex;align-items:center;gap:8px;color:#4a3f7a}
+.filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem;padding:1rem;background:#fff;border:1px solid #d4cff0;border-radius:12px}
 .filter-group{display:flex;flex-direction:column;gap:4px;min-width:120px}
-.filter-group label{font-size:12px;color:#666}
-select,input[type=date]{font-size:13px;padding:5px 8px;border-radius:8px;border:1px solid #ddd;background:#f9f9f9;color:#222;width:100%}
-.btn{font-size:13px;padding:6px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#222;cursor:pointer;align-self:flex-end}
-.btn:hover{background:#f0f0f0}
+.filter-group label{font-size:12px;color:#7b6fa8}
+select,input[type=date]{font-size:13px;padding:5px 8px;border-radius:8px;border:1px solid #c4bde8;background:#f8f6ff;color:#2d2640;width:100%}
+.btn{font-size:13px;padding:6px 16px;border-radius:8px;border:1px solid #b8b0e0;background:#fff;color:#4a3f7a;cursor:pointer;align-self:flex-end}
+.btn:hover{background:#ede9f8}
 .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem}
-.mc{background:#fff;border-radius:8px;padding:1rem;border:1px solid #e0e0e0}
-.mc-label{font-size:12px;color:#888;margin-bottom:6px}
-.mc-value{font-size:24px;font-weight:500}
+.mc{background:#fff;border-radius:8px;padding:1rem;border:1px solid #d4cff0}
+.mc-label{font-size:12px;color:#9b8fc0;margin-bottom:6px}
+.mc-value{font-size:24px;font-weight:500;color:#4a3f7a}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.5rem}
-.chart-card{background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:1rem}
-.chart-title{font-size:13px;color:#888;margin-bottom:12px;font-weight:500}
+.chart-card{background:#fff;border:1px solid #d4cff0;border-radius:12px;padding:1rem}
+.chart-title{font-size:13px;color:#9b8fc0;margin-bottom:12px;font-weight:500}
 .chart-box{position:relative;width:100%;height:200px}
-.table-card{background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:1rem;overflow-x:auto;margin-bottom:1.5rem}
-.table-title{font-size:13px;color:#888;margin-bottom:12px;font-weight:500}
+.table-card{background:#fff;border:1px solid #d4cff0;border-radius:12px;padding:1rem;overflow-x:auto;margin-bottom:1.5rem}
+.table-title{font-size:13px;color:#9b8fc0;margin-bottom:12px;font-weight:500}
 table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
-th{text-align:left;padding:8px 10px;border-bottom:1px solid #eee;color:#888;font-weight:500;font-size:12px}
-td{padding:8px 10px;border-bottom:1px solid #f0f0f0;color:#222}
+th{text-align:left;padding:8px 10px;border-bottom:1px solid #e8e4f5;color:#9b8fc0;font-weight:500;font-size:12px}
+td{padding:8px 10px;border-bottom:1px solid #f0edf8;color:#2d2640}
 tr:last-child td{border-bottom:none}
-.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#E6F1FB;color:#0C447C}
-.empty{color:#aaa;font-size:13px;padding:1rem 0;text-align:center}
-.highlight{background:#f0f7ff;font-weight:500}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#ede9f8;color:#4a3f7a}
+.empty{color:#c4bde8;font-size:13px;padding:1rem 0;text-align:center}
 @media(max-width:600px){.charts{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -210,7 +209,7 @@ function renderTable(f) {
       <td>${Math.round(d.quantity||0).toLocaleString()}</td>
       <td>${t > 0 ? t.toFixed(1) : '—'}</td>
       <td>${eff}</td>
-      <td style="color:#888">${d.note||''}</td>
+      <td style="color:#9b8fc0">${d.note||''}</td>
     </tr>`;
   }).join('');
 }
@@ -225,14 +224,14 @@ function renderCharts(f) {
   const names=Object.keys(byName).sort();
 
   if(c1)c1.destroy();
-  c1=new Chart(document.getElementById('chart1'),{type:'bar',data:{labels:names,datasets:[{label:'数量',data:names.map(n=>Math.round(byName[n].qty)),backgroundColor:'#378ADD',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  c1=new Chart(document.getElementById('chart1'),{type:'bar',data:{labels:names,datasets:[{label:'数量',data:names.map(n=>Math.round(byName[n].qty)),backgroundColor:'#7f77dd',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
 
   const effData = names.map(n => {
     const t = byName[n].time;
     return t > 0 ? parseFloat((byName[n].qty/t).toFixed(1)) : 0;
   });
   if(c3)c3.destroy();
-  c3=new Chart(document.getElementById('chart3'),{type:'bar',data:{labels:names,datasets:[{label:'個/時',data:effData,backgroundColor:'#D85A30',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  c3=new Chart(document.getElementById('chart3'),{type:'bar',data:{labels:names,datasets:[{label:'個/時',data:effData,backgroundColor:'#b48fc0',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
 }
 
 loadData();
