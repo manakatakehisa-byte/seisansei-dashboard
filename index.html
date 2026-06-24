@@ -10,6 +10,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:sans-serif;background:#f0eef8;color:#2d2640;min-height:100vh;padding:1.5rem}
 h1{font-size:20px;font-weight:500;margin-bottom:1.5rem;display:flex;align-items:center;gap:8px;color:#4a3f7a}
+h2{font-size:16px;font-weight:500;margin:2rem 0 1rem;color:#4a3f7a;display:flex;align-items:center;gap:8px;padding-top:1rem;border-top:2px solid #d4cff0}
 .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem;padding:1rem;background:#fff;border:1px solid #d4cff0;border-radius:12px}
 .filter-group{display:flex;flex-direction:column;gap:4px;min-width:120px}
 .filter-group label{font-size:12px;color:#7b6fa8}
@@ -17,6 +18,7 @@ select,input[type=date]{font-size:13px;padding:5px 8px;border-radius:8px;border:
 .btn{font-size:13px;padding:6px 16px;border-radius:8px;border:1px solid #b8b0e0;background:#fff;color:#4a3f7a;cursor:pointer;align-self:flex-end}
 .btn:hover{background:#ede9f8}
 .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem}
+.metrics4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
 .mc{background:#fff;border-radius:8px;padding:1rem;border:1px solid #d4cff0}
 .mc-label{font-size:12px;color:#9b8fc0;margin-bottom:6px}
 .mc-value{font-size:24px;font-weight:500;color:#4a3f7a}
@@ -26,19 +28,21 @@ select,input[type=date]{font-size:13px;padding:5px 8px;border-radius:8px;border:
 .chart-box{position:relative;width:100%;height:200px}
 .table-card{background:#fff;border:1px solid #d4cff0;border-radius:12px;padding:1rem;overflow-x:auto;margin-bottom:1.5rem}
 .table-title{font-size:13px;color:#9b8fc0;margin-bottom:12px;font-weight:500}
-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
-th{text-align:left;padding:8px 10px;border-bottom:1px solid #e8e4f5;color:#9b8fc0;font-weight:500;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;border-bottom:1px solid #e8e4f5;color:#9b8fc0;font-weight:500;font-size:12px;white-space:nowrap}
 td{padding:8px 10px;border-bottom:1px solid #f0edf8;color:#2d2640}
 tr:last-child td{border-bottom:none}
 .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#ede9f8;color:#4a3f7a}
+.badge-red{background:#fde8e8;color:#a33}
 .empty{color:#c4bde8;font-size:13px;padding:1rem 0;text-align:center}
-@media(max-width:600px){.charts{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.charts{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.metrics4{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 
 <h1><i class="ti ti-chart-bar"></i>生産性ダッシュボード</h1>
 
+<!-- 生産性セクション -->
 <div class="filters">
   <div class="filter-group">
     <label>名前</label>
@@ -62,7 +66,7 @@ tr:last-child td{border-bottom:none}
   </div>
   <div class="filter-group">
     <label>&nbsp;</label>
-    <button class="btn" onclick="loadData()"><i class="ti ti-refresh"></i> 更新</button>
+    <button class="btn" onclick="loadAll()"><i class="ti ti-refresh"></i> 更新</button>
   </div>
 </div>
 
@@ -75,15 +79,7 @@ tr:last-child td{border-bottom:none}
 <div class="table-card">
   <div class="table-title">名前別 生産性まとめ</div>
   <table>
-    <thead>
-      <tr>
-        <th style="width:80px">名前</th>
-        <th style="width:70px">数量</th>
-        <th style="width:80px">時間（時）</th>
-        <th style="width:90px">生産性（個/時）</th>
-        <th style="width:50px">件数</th>
-      </tr>
-    </thead>
+    <thead><tr><th>名前</th><th>数量</th><th>時間（時）</th><th>生産性（個/時）</th><th>件数</th></tr></thead>
     <tbody id="summaryBody"><tr><td colspan="5" class="empty">読み込み中...</td></tr></tbody>
   </table>
 </div>
@@ -91,54 +87,108 @@ tr:last-child td{border-bottom:none}
 <div class="charts">
   <div class="chart-card">
     <div class="chart-title">名前別 数量</div>
-    <div class="chart-box"><canvas id="chart1" role="img" aria-label="名前別数量">名前別数量</canvas></div>
+    <div class="chart-box"><canvas id="chart1"></canvas></div>
   </div>
   <div class="chart-card">
     <div class="chart-title">名前別 生産性（個/時）</div>
-    <div class="chart-box"><canvas id="chart3" role="img" aria-label="名前別生産性">名前別生産性</canvas></div>
+    <div class="chart-box"><canvas id="chart3"></canvas></div>
   </div>
 </div>
 
 <div class="table-card">
   <div class="table-title">明細</div>
   <table>
-    <thead>
-      <tr>
-        <th style="width:90px">日付</th>
-        <th style="width:100px">種別</th>
-        <th style="width:70px">名前</th>
-        <th style="width:55px">数量</th>
-        <th style="width:65px">時間(h)</th>
-        <th style="width:65px">生産性</th>
-        <th>備考</th>
-      </tr>
-    </thead>
+    <thead><tr><th>日付</th><th>種別</th><th>名前</th><th>数量</th><th>時間(h)</th><th>生産性</th><th>備考</th></tr></thead>
     <tbody id="tbody"><tr><td colspan="7" class="empty">読み込み中...</td></tr></tbody>
+  </table>
+</div>
+
+<!-- 抜き取り検品セクション -->
+<h2><i class="ti ti-clipboard-check"></i>抜き取り検品結果</h2>
+
+<div class="filters">
+  <div class="filter-group">
+    <label>工場</label>
+    <select id="iFactory"><option value="">すべて</option></select>
+  </div>
+  <div class="filter-group">
+    <label>品番</label>
+    <select id="iItem"><option value="">すべて</option></select>
+  </div>
+  <div class="filter-group">
+    <label>納品日（開始）</label>
+    <input type="date" id="iStart">
+  </div>
+  <div class="filter-group">
+    <label>納品日（終了）</label>
+    <input type="date" id="iEnd">
+  </div>
+  <div class="filter-group">
+    <label>&nbsp;</label>
+    <button class="btn" onclick="applyInspectionFilters()"><i class="ti ti-filter"></i> 絞り込む</button>
+  </div>
+</div>
+
+<div class="metrics4">
+  <div class="mc"><div class="mc-label">合計抜き取り数</div><div class="mc-value" id="iTotal">—</div></div>
+  <div class="mc"><div class="mc-label">合計不良数</div><div class="mc-value" id="iDefect">—</div></div>
+  <div class="mc"><div class="mc-label">全体不良率</div><div class="mc-value" id="iRate">—</div></div>
+  <div class="mc"><div class="mc-label">平均報告日数</div><div class="mc-value" id="iDays">—</div></div>
+</div>
+
+<div class="table-card">
+  <div class="table-title">工場・品番別 集計</div>
+  <table>
+    <thead><tr><th>工場</th><th>品番</th><th>抜き取り数</th><th>不良数</th><th>不良率</th><th>平均報告日数</th><th>件数</th></tr></thead>
+    <tbody id="iSummaryBody"><tr><td colspan="7" class="empty">読み込み中...</td></tr></tbody>
+  </table>
+</div>
+
+<div class="charts">
+  <div class="chart-card">
+    <div class="chart-title">工場別 不良率（%）</div>
+    <div class="chart-box"><canvas id="iChart1"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">工場別 平均報告日数</div>
+    <div class="chart-box"><canvas id="iChart2"></canvas></div>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="table-title">明細</div>
+  <table>
+    <thead><tr><th>工場</th><th>納品日</th><th>品番</th><th>抜き取り数</th><th>不良数</th><th>不良率</th><th>報告日</th><th>報告日数</th></tr></thead>
+    <tbody id="iBody"><tr><td colspan="8" class="empty">読み込み中...</td></tr></tbody>
   </table>
 </div>
 
 <script>
 const API = 'https://script.google.com/a/macros/waterair.jp/s/AKfycbwiOqQt-jSpb8GtYUylb35Cu5Ev7rNYhz1e-SlqYQW5Vbq6wlsWKdQzSFfbNo5psTdnsw/exec';
-let all = [], c1, c3;
+let allS = [], allI = [], c1, c3, iC1, iC2;
 
-async function loadData() {
-  document.getElementById('tbody').innerHTML = '<tr><td colspan="7" class="empty">読み込み中...</td></tr>';
-  document.getElementById('summaryBody').innerHTML = '<tr><td colspan="5" class="empty">読み込み中...</td></tr>';
+async function loadAll() {
   try {
-    const r = await fetch(API);
-    all = await r.json();
-    all = all.filter(d => d.name && d.name !== 'false' && d.date);
+    const [r1, r2] = await Promise.all([
+      fetch(API).then(r => r.json()),
+      fetch(API + '?type=inspection').then(r => r.json())
+    ]);
+    allS = r1.filter(d => d.name && d.name !== 'false' && d.date);
+    allI = r2.filter(d => d.factory && d.factory !== '');
     populateFilters();
+    populateInspectionFilters();
     applyFilters();
+    applyInspectionFilters();
   } catch(e) {
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="7" class="empty">読み込みエラー</td></tr>';
+    console.error(e);
   }
 }
 
+// 生産性
 function populateFilters() {
-  const names = [...new Set(all.map(d => d.name))].sort();
+  const names = [...new Set(allS.map(d => d.name))].sort();
   document.getElementById('fName').innerHTML = '<option value="">すべて</option>' + names.map(n => `<option>${n}</option>`).join('');
-  const months = [...new Set(all.map(d => d.date.slice(0,7)))].sort();
+  const months = [...new Set(allS.map(d => d.date.slice(0,7)))].sort();
   document.getElementById('fMonth').innerHTML = '<option value="">すべて</option>' + months.map(m => {
     const [y,mo] = m.split('/');
     return `<option value="${m}">${y}年${parseInt(mo)}月</option>`;
@@ -150,91 +200,115 @@ function applyFilters() {
   const month = document.getElementById('fMonth').value;
   const start = document.getElementById('fStart').value;
   const end = document.getElementById('fEnd').value;
-  let f = all.filter(d => {
+  let f = allS.filter(d => {
     if (name && d.name !== name) return false;
     if (month && !d.date.startsWith(month)) return false;
     if (start && d.date < start.replace(/-/g,'/')) return false;
     if (end && d.date > end.replace(/-/g,'/')) return false;
     return true;
   });
-  renderMetrics(f);
-  renderSummary(f);
-  renderTable(f);
-  renderCharts(f);
-}
-
-function renderMetrics(f) {
   const totalQty = f.reduce((s,d) => s+(Number(d.quantity)||0), 0);
   const totalTime = f.reduce((s,d) => s+(Number(d.time)||0), 0);
-  const eff = totalTime > 0 ? (totalQty/totalTime).toFixed(1) : '—';
   document.getElementById('mQty').textContent = Math.round(totalQty).toLocaleString();
   document.getElementById('mTime').textContent = totalTime > 0 ? totalTime.toFixed(1) : '—';
-  document.getElementById('mEff').textContent = eff;
-}
+  document.getElementById('mEff').textContent = totalTime > 0 ? (totalQty/totalTime).toFixed(1) : '—';
 
-function renderSummary(f) {
   const byName = {};
   f.forEach(d => {
-    if (!byName[d.name]) byName[d.name] = {qty:0, time:0, count:0};
+    if (!byName[d.name]) byName[d.name]={qty:0,time:0,count:0};
     byName[d.name].qty += Number(d.quantity)||0;
     byName[d.name].time += Number(d.time)||0;
     byName[d.name].count++;
   });
   const names = Object.keys(byName).sort();
-  const tbody = document.getElementById('summaryBody');
-  if (!names.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">データがありません</td></tr>'; return; }
-  tbody.innerHTML = names.map(n => {
+  document.getElementById('summaryBody').innerHTML = names.map(n => {
     const t = byName[n].time;
-    const eff = t > 0 ? (byName[n].qty/t).toFixed(1) : '—';
-    return `<tr>
-      <td>${n}</td>
-      <td>${Math.round(byName[n].qty).toLocaleString()}</td>
-      <td>${t > 0 ? t.toFixed(1) : '—'}</td>
-      <td>${eff}</td>
-      <td>${byName[n].count}</td>
-    </tr>`;
-  }).join('');
-}
+    return `<tr><td>${n}</td><td>${Math.round(byName[n].qty).toLocaleString()}</td><td>${t>0?t.toFixed(1):'—'}</td><td>${t>0?(byName[n].qty/t).toFixed(1):'—'}</td><td>${byName[n].count}</td></tr>`;
+  }).join('') || '<tr><td colspan="5" class="empty">データがありません</td></tr>';
 
-function renderTable(f) {
-  const tbody = document.getElementById('tbody');
-  if (!f.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">データがありません</td></tr>'; return; }
-  tbody.innerHTML = f.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(d => {
+  document.getElementById('tbody').innerHTML = f.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(d => {
     const t = Number(d.time)||0;
-    const eff = t > 0 ? (Number(d.quantity)/t).toFixed(1) : '—';
-    return `<tr>
-      <td>${d.date}</td>
-      <td><span class="badge">${d.type||''}</span></td>
-      <td>${d.name}</td>
-      <td>${Math.round(d.quantity||0).toLocaleString()}</td>
-      <td>${t > 0 ? t.toFixed(1) : '—'}</td>
-      <td>${eff}</td>
-      <td style="color:#9b8fc0">${d.note||''}</td>
-    </tr>`;
-  }).join('');
-}
-
-function renderCharts(f) {
-  const byName={};
-  f.forEach(d=>{
-    if(!byName[d.name]) byName[d.name]={qty:0,time:0};
-    byName[d.name].qty += Number(d.quantity)||0;
-    byName[d.name].time += Number(d.time)||0;
-  });
-  const names=Object.keys(byName).sort();
+    return `<tr><td>${d.date}</td><td><span class="badge">${d.type||''}</span></td><td>${d.name}</td><td>${Math.round(d.quantity||0).toLocaleString()}</td><td>${t>0?t.toFixed(1):'—'}</td><td>${t>0?(Number(d.quantity)/t).toFixed(1):'—'}</td><td style="color:#9b8fc0">${d.note||''}</td></tr>`;
+  }).join('') || '<tr><td colspan="7" class="empty">データがありません</td></tr>';
 
   if(c1)c1.destroy();
   c1=new Chart(document.getElementById('chart1'),{type:'bar',data:{labels:names,datasets:[{label:'数量',data:names.map(n=>Math.round(byName[n].qty)),backgroundColor:'#7f77dd',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
-
-  const effData = names.map(n => {
-    const t = byName[n].time;
-    return t > 0 ? parseFloat((byName[n].qty/t).toFixed(1)) : 0;
-  });
   if(c3)c3.destroy();
-  c3=new Chart(document.getElementById('chart3'),{type:'bar',data:{labels:names,datasets:[{label:'個/時',data:effData,backgroundColor:'#b48fc0',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  c3=new Chart(document.getElementById('chart3'),{type:'bar',data:{labels:names,datasets:[{label:'個/時',data:names.map(n=>{const t=byName[n].time;return t>0?parseFloat((byName[n].qty/t).toFixed(1)):0;}),backgroundColor:'#b48fc0',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
 }
 
-loadData();
+// 抜き取り検品
+function populateInspectionFilters() {
+  const factories = [...new Set(allI.map(d => d.factory))].sort();
+  document.getElementById('iFactory').innerHTML = '<option value="">すべて</option>' + factories.map(f => `<option>${f}</option>`).join('');
+  const items = [...new Set(allI.map(d => d.itemNo))].sort();
+  document.getElementById('iItem').innerHTML = '<option value="">すべて</option>' + items.map(i => `<option>${i}</option>`).join('');
+}
+
+function applyInspectionFilters() {
+  const factory = document.getElementById('iFactory').value;
+  const item = document.getElementById('iItem').value;
+  const start = document.getElementById('iStart').value;
+  const end = document.getElementById('iEnd').value;
+  let f = allI.filter(d => {
+    if (factory && d.factory !== factory) return false;
+    if (item && d.itemNo !== item) return false;
+    if (start && d.deliveryDate && d.deliveryDate < start.replace(/-/g,'/')) return false;
+    if (end && d.deliveryDate && d.deliveryDate > end.replace(/-/g,'/')) return false;
+    return true;
+  });
+
+  const totalInsp = f.reduce((s,d) => s+(Number(d.inspectionCount)||0), 0);
+  const totalDef = f.reduce((s,d) => s+(Number(d.defectCount)||0), 0);
+  const rate = totalInsp > 0 ? (totalDef/totalInsp*100).toFixed(2) : '—';
+  const daysArr = f.filter(d => d.daysToReport !== null).map(d => d.daysToReport);
+  const avgDays = daysArr.length > 0 ? (daysArr.reduce((s,d)=>s+d,0)/daysArr.length).toFixed(1) : '—';
+  document.getElementById('iTotal').textContent = totalInsp.toLocaleString();
+  document.getElementById('iDefect').textContent = totalDef.toLocaleString();
+  document.getElementById('iRate').textContent = rate !== '—' ? rate + '%' : '—';
+  document.getElementById('iDays').textContent = avgDays !== '—' ? avgDays + '日' : '—';
+
+  // 工場・品番別集計
+  const byKey = {};
+  f.forEach(d => {
+    const key = d.factory + '___' + d.itemNo;
+    if (!byKey[key]) byKey[key]={factory:d.factory,itemNo:d.itemNo,insp:0,def:0,days:[],count:0};
+    byKey[key].insp += Number(d.inspectionCount)||0;
+    byKey[key].def += Number(d.defectCount)||0;
+    if (d.daysToReport !== null) byKey[key].days.push(d.daysToReport);
+    byKey[key].count++;
+  });
+  const keys = Object.keys(byKey).sort();
+  document.getElementById('iSummaryBody').innerHTML = keys.map(k => {
+    const r = byKey[k];
+    const rate = r.insp > 0 ? (r.def/r.insp*100).toFixed(2)+'%' : '—';
+    const avgD = r.days.length > 0 ? (r.days.reduce((s,d)=>s+d,0)/r.days.length).toFixed(1)+'日' : '—';
+    const rateHigh = r.insp > 0 && r.def/r.insp > 0.05;
+    return `<tr><td>${r.factory}</td><td>${r.itemNo}</td><td>${r.insp.toLocaleString()}</td><td>${r.def}</td><td ${rateHigh?'style="color:#a33;font-weight:500"':''}>${rate}</td><td>${avgD}</td><td>${r.count}</td></tr>`;
+  }).join('') || '<tr><td colspan="7" class="empty">データがありません</td></tr>';
+
+  document.getElementById('iBody').innerHTML = f.slice().sort((a,b)=>(b.deliveryDate||'').localeCompare(a.deliveryDate||'')).map(d => {
+    const rate = d.inspectionCount > 0 ? (d.defectCount/d.inspectionCount*100).toFixed(2)+'%' : '—';
+    const rateHigh = d.inspectionCount > 0 && d.defectCount/d.inspectionCount > 0.05;
+    return `<tr><td>${d.factory}</td><td>${d.deliveryDate||''}</td><td>${d.itemNo}</td><td>${(d.inspectionCount||0).toLocaleString()}</td><td>${d.defectCount||0}</td><td ${rateHigh?'style="color:#a33;font-weight:500"':''}>${rate}</td><td>${d.reportDate||'—'}</td><td>${d.daysToReport!==null?d.daysToReport+'日':'—'}</td></tr>`;
+  }).join('') || '<tr><td colspan="8" class="empty">データがありません</td></tr>';
+
+  // 工場別グラフ
+  const byFactory = {};
+  f.forEach(d => {
+    if (!byFactory[d.factory]) byFactory[d.factory]={insp:0,def:0,days:[]};
+    byFactory[d.factory].insp += Number(d.inspectionCount)||0;
+    byFactory[d.factory].def += Number(d.defectCount)||0;
+    if (d.daysToReport !== null) byFactory[d.factory].days.push(d.daysToReport);
+  });
+  const factories = Object.keys(byFactory).sort();
+  if(iC1)iC1.destroy();
+  iC1=new Chart(document.getElementById('iChart1'),{type:'bar',data:{labels:factories,datasets:[{label:'不良率%',data:factories.map(f=>byFactory[f].insp>0?parseFloat((byFactory[f].def/byFactory[f].insp*100).toFixed(2)):0),backgroundColor:'#e07070',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  if(iC2)iC2.destroy();
+  iC2=new Chart(document.getElementById('iChart2'),{type:'bar',data:{labels:factories,datasets:[{label:'平均日数',data:factories.map(f=>{const d=byFactory[f].days;return d.length>0?parseFloat((d.reduce((s,v)=>s+v,0)/d.length).toFixed(1)):0;}),backgroundColor:'#7f77dd',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+}
+
+loadAll();
 </script>
 </body>
 </html>
