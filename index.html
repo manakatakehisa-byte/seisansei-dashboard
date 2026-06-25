@@ -10,6 +10,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:sans-serif;background:#f0eef8;color:#2d2640;min-height:100vh;padding:1.5rem}
 h1{font-size:20px;font-weight:500;margin-bottom:1.5rem;display:flex;align-items:center;gap:8px;color:#4a3f7a}
+h3{font-size:15px;font-weight:500;margin:1.5rem 0 1rem;color:#4a3f7a}
 .tabs{display:flex;gap:8px;margin-bottom:1.5rem}
 .tab{padding:8px 20px;border-radius:20px;border:1.5px solid #c4bde8;background:#fff;color:#7b6fa8;cursor:pointer;font-size:14px;font-weight:500;transition:all 0.2s}
 .tab.active{background:#7f77dd;color:#fff;border-color:#7f77dd}
@@ -29,8 +30,10 @@ select,input[type=date]{font-size:13px;padding:5px 8px;border-radius:8px;border:
 .mc-value{font-size:24px;font-weight:500;color:#4a3f7a}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.5rem}
 .chart-card{background:#fff;border:1px solid #d4cff0;border-radius:12px;padding:1rem}
+.chart-card.wide{background:#fff;border:1px solid #d4cff0;border-radius:12px;padding:1rem;margin-bottom:1.5rem}
 .chart-title{font-size:13px;color:#9b8fc0;margin-bottom:12px;font-weight:500}
 .chart-box{position:relative;width:100%;height:200px}
+.chart-box-tall{position:relative;width:100%;height:240px}
 .table-card{background:#fff;border:1px solid #d4cff0;border-radius:12px;padding:1rem;overflow-x:auto;margin-bottom:1.5rem}
 .table-title{font-size:13px;color:#9b8fc0;margin-bottom:12px;font-weight:500}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -39,6 +42,7 @@ td{padding:8px 10px;border-bottom:1px solid #f0edf8;color:#2d2640}
 tr:last-child td{border-bottom:none}
 .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#ede9f8;color:#4a3f7a}
 .empty{color:#c4bde8;font-size:13px;padding:1rem 0;text-align:center}
+.divider{border:none;border-top:1.5px solid #d4cff0;margin:2rem 0}
 @media(max-width:600px){.charts{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.metrics4{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -77,6 +81,27 @@ tr:last-child td{border-bottom:none}
     <div class="chart-card"><div class="chart-title">名前別 数量</div><div class="chart-box"><canvas id="chart1"></canvas></div></div>
     <div class="chart-card"><div class="chart-title">名前別 生産性（個/時）</div><div class="chart-box"><canvas id="chart3"></canvas></div></div>
   </div>
+
+  <hr class="divider">
+  <h3><i class="ti ti-calendar"></i> 月別 生産性推移</h3>
+
+  <div class="chart-card wide">
+    <div class="chart-title">月別 生産性（個/時）</div>
+    <div class="chart-box-tall"><canvas id="mChart1"></canvas></div>
+  </div>
+  <div class="charts">
+    <div class="chart-card"><div class="chart-title">月別 合計数量</div><div class="chart-box"><canvas id="mChart2"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">月別 合計時間（時）</div><div class="chart-box"><canvas id="mChart3"></canvas></div></div>
+  </div>
+  <div class="table-card">
+    <div class="table-title">月別 データ</div>
+    <table>
+      <thead><tr><th>月</th><th>数量</th><th>時間（時）</th><th>生産性（個/時）</th><th>件数</th></tr></thead>
+      <tbody id="monthlyBody"><tr><td colspan="5" class="empty">読み込み中...</td></tr></tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
   <div class="table-card">
     <div class="table-title">明細</div>
     <table>
@@ -112,6 +137,23 @@ tr:last-child td{border-bottom:none}
     <div class="chart-card"><div class="chart-title">工場別 不良率（%）</div><div class="chart-box"><canvas id="iChart1"></canvas></div></div>
     <div class="chart-card"><div class="chart-title">工場別 平均報告日数</div><div class="chart-box"><canvas id="iChart2"></canvas></div></div>
   </div>
+
+  <hr class="divider">
+  <h3><i class="ti ti-calendar"></i> 月別 検品推移</h3>
+
+  <div class="charts">
+    <div class="chart-card"><div class="chart-title">月別 抜き取り確認数</div><div class="chart-box"><canvas id="imChart1"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">月別 平均報告日数</div><div class="chart-box"><canvas id="imChart2"></canvas></div></div>
+  </div>
+  <div class="table-card">
+    <div class="table-title">月別 データ</div>
+    <table>
+      <thead><tr><th>月</th><th>抜き取り確認数</th><th>不良数</th><th>不良率</th><th>平均報告日数</th><th>件数</th></tr></thead>
+      <tbody id="iMonthlyBody"><tr><td colspan="6" class="empty">読み込み中...</td></tr></tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
   <div class="table-card">
     <div class="table-title">明細</div>
     <table>
@@ -123,7 +165,7 @@ tr:last-child td{border-bottom:none}
 
 <script>
 const API = 'https://script.google.com/a/macros/waterair.jp/s/AKfycbwiOqQt-jSpb8GtYUylb35Cu5Ev7rNYhz1e-SlqYQW5Vbq6wlsWKdQzSFfbNo5psTdnsw/exec';
-let allS = [], allI = [], c1, c3, iC1, iC2;
+let allS = [], allI = [], c1, c3, iC1, iC2, mC1, mC2, mC3, imC1, imC2;
 
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -168,11 +210,13 @@ function applyFilters() {
     if (end && d.date > end.replace(/-/g,'/')) return false;
     return true;
   });
+
   const totalQty = f.reduce((s,d) => s+(Number(d.quantity)||0), 0);
   const totalTime = f.reduce((s,d) => s+(Number(d.time)||0), 0);
   document.getElementById('mQty').textContent = Math.round(totalQty).toLocaleString();
   document.getElementById('mTime').textContent = totalTime > 0 ? totalTime.toFixed(1) : '—';
   document.getElementById('mEff').textContent = totalTime > 0 ? (totalQty/totalTime).toFixed(1) : '—';
+
   const byName = {};
   f.forEach(d => {
     if (!byName[d.name]) byName[d.name]={qty:0,time:0,count:0};
@@ -185,14 +229,41 @@ function applyFilters() {
     const t = byName[n].time;
     return `<tr><td>${n}</td><td>${Math.round(byName[n].qty).toLocaleString()}</td><td>${t>0?t.toFixed(1):'—'}</td><td>${t>0?(byName[n].qty/t).toFixed(1):'—'}</td><td>${byName[n].count}</td></tr>`;
   }).join('') || '<tr><td colspan="5" class="empty">データがありません</td></tr>';
+
   document.getElementById('tbody').innerHTML = f.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(d => {
     const t = Number(d.time)||0;
     return `<tr><td>${d.date}</td><td><span class="badge">${d.type||''}</span></td><td>${d.name}</td><td>${Math.round(d.quantity||0).toLocaleString()}</td><td>${t>0?t.toFixed(1):'—'}</td><td>${t>0?(Number(d.quantity)/t).toFixed(1):'—'}</td><td style="color:#9b8fc0">${d.note||''}</td></tr>`;
   }).join('') || '<tr><td colspan="7" class="empty">データがありません</td></tr>';
+
   if(c1)c1.destroy();
   c1=new Chart(document.getElementById('chart1'),{type:'bar',data:{labels:names,datasets:[{label:'数量',data:names.map(n=>Math.round(byName[n].qty)),backgroundColor:'#7f77dd',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
   if(c3)c3.destroy();
   c3=new Chart(document.getElementById('chart3'),{type:'bar',data:{labels:names,datasets:[{label:'個/時',data:names.map(n=>{const t=byName[n].time;return t>0?parseFloat((byName[n].qty/t).toFixed(1)):0;}),backgroundColor:'#b48fc0',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+
+  // 月別集計
+  const byMonth = {};
+  f.forEach(d => {
+    const m = d.date.slice(0,7);
+    if (!byMonth[m]) byMonth[m]={qty:0,time:0,count:0};
+    byMonth[m].qty += Number(d.quantity)||0;
+    byMonth[m].time += Number(d.time)||0;
+    byMonth[m].count++;
+  });
+  const months = Object.keys(byMonth).sort();
+  const mLabels = months.map(m => { const [y,mo]=m.split('/'); return `${y}年${parseInt(mo)}月`; });
+
+  document.getElementById('monthlyBody').innerHTML = months.map(m => {
+    const t = byMonth[m].time;
+    const eff = t > 0 ? (byMonth[m].qty/t).toFixed(1) : '—';
+    return `<tr><td>${m.replace('/','/').slice(0,7)}</td><td>${Math.round(byMonth[m].qty).toLocaleString()}</td><td>${t>0?t.toFixed(1):'—'}</td><td>${eff}</td><td>${byMonth[m].count}</td></tr>`;
+  }).join('') || '<tr><td colspan="5" class="empty">データがありません</td></tr>';
+
+  if(mC1)mC1.destroy();
+  mC1=new Chart(document.getElementById('mChart1'),{type:'line',data:{labels:mLabels,datasets:[{label:'個/時',data:months.map(m=>{const t=byMonth[m].time;return t>0?parseFloat((byMonth[m].qty/t).toFixed(1)):0;}),borderColor:'#7f77dd',backgroundColor:'#ede9f8',tension:0.3,fill:true,pointRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  if(mC2)mC2.destroy();
+  mC2=new Chart(document.getElementById('mChart2'),{type:'bar',data:{labels:mLabels,datasets:[{label:'数量',data:months.map(m=>Math.round(byMonth[m].qty)),backgroundColor:'#7f77dd',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  if(mC3)mC3.destroy();
+  mC3=new Chart(document.getElementById('mChart3'),{type:'bar',data:{labels:mLabels,datasets:[{label:'時間',data:months.map(m=>parseFloat(byMonth[m].time.toFixed(1))),backgroundColor:'#b48fc0',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
 }
 
 function populateInspectionFilters() {
@@ -214,6 +285,7 @@ function applyInspectionFilters() {
     if (end && d.deliveryDate && d.deliveryDate > end.replace(/-/g,'/')) return false;
     return true;
   });
+
   const totalInsp = f.reduce((s,d) => s+(Number(d.inspectionCount)||0), 0);
   const totalDef = f.reduce((s,d) => s+(Number(d.defectCount)||0), 0);
   const daysArr = f.filter(d => d.daysToReport !== null).map(d => d.daysToReport);
@@ -221,6 +293,7 @@ function applyInspectionFilters() {
   document.getElementById('iDefect').textContent = totalDef.toLocaleString();
   document.getElementById('iRate').textContent = totalInsp > 0 ? (totalDef/totalInsp*100).toFixed(2)+'%' : '—';
   document.getElementById('iDays').textContent = daysArr.length > 0 ? (daysArr.reduce((s,d)=>s+d,0)/daysArr.length).toFixed(1)+'日' : '—';
+
   const byKey = {};
   f.forEach(d => {
     const key = d.factory + '___' + d.itemNo;
@@ -238,11 +311,13 @@ function applyInspectionFilters() {
     const hi = r.insp > 0 && r.def/r.insp > 0.05;
     return `<tr><td>${r.factory}</td><td>${r.itemNo}</td><td>${r.insp.toLocaleString()}</td><td>${r.def}</td><td ${hi?'style="color:#a33;font-weight:500"':''}>${rate}</td><td>${avgD}</td><td>${r.count}</td></tr>`;
   }).join('') || '<tr><td colspan="7" class="empty">データがありません</td></tr>';
+
   document.getElementById('iBody').innerHTML = f.slice().sort((a,b)=>(b.deliveryDate||'').localeCompare(a.deliveryDate||'')).map(d => {
     const rate = d.inspectionCount > 0 ? (d.defectCount/d.inspectionCount*100).toFixed(2)+'%' : '—';
     const hi = d.inspectionCount > 0 && d.defectCount/d.inspectionCount > 0.05;
     return `<tr><td>${d.factory}</td><td>${d.deliveryDate||''}</td><td>${d.itemNo}</td><td>${(d.inspectionCount||0).toLocaleString()}</td><td>${d.defectCount||0}</td><td ${hi?'style="color:#a33;font-weight:500"':''}>${rate}</td><td>${d.reportDate||'—'}</td><td>${d.daysToReport!==null?d.daysToReport+'日':'—'}</td></tr>`;
   }).join('') || '<tr><td colspan="8" class="empty">データがありません</td></tr>';
+
   const byFactory = {};
   f.forEach(d => {
     if (!byFactory[d.factory]) byFactory[d.factory]={insp:0,def:0,days:[]};
@@ -255,6 +330,32 @@ function applyInspectionFilters() {
   iC1=new Chart(document.getElementById('iChart1'),{type:'bar',data:{labels:factories,datasets:[{label:'不良率%',data:factories.map(f=>byFactory[f].insp>0?parseFloat((byFactory[f].def/byFactory[f].insp*100).toFixed(2)):0),backgroundColor:'#e07070',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
   if(iC2)iC2.destroy();
   iC2=new Chart(document.getElementById('iChart2'),{type:'bar',data:{labels:factories,datasets:[{label:'平均日数',data:factories.map(f=>{const d=byFactory[f].days;return d.length>0?parseFloat((d.reduce((s,v)=>s+v,0)/d.length).toFixed(1)):0;}),backgroundColor:'#7f77dd',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+
+  // 月別集計（検品）
+  const iByMonth = {};
+  f.forEach(d => {
+    const m = (d.deliveryDate||'').slice(0,7);
+    if (!m) return;
+    if (!iByMonth[m]) iByMonth[m]={insp:0,def:0,days:[],count:0};
+    iByMonth[m].insp += Number(d.inspectionCount)||0;
+    iByMonth[m].def += Number(d.defectCount)||0;
+    if (d.daysToReport !== null) iByMonth[m].days.push(d.daysToReport);
+    iByMonth[m].count++;
+  });
+  const iMonths = Object.keys(iByMonth).sort();
+  const imLabels = iMonths.map(m => { const [y,mo]=m.split('/'); return `${y}年${parseInt(mo)}月`; });
+
+  document.getElementById('iMonthlyBody').innerHTML = iMonths.map(m => {
+    const r = iByMonth[m];
+    const rate = r.insp > 0 ? (r.def/r.insp*100).toFixed(2)+'%' : '—';
+    const avgD = r.days.length > 0 ? (r.days.reduce((s,d)=>s+d,0)/r.days.length).toFixed(1)+'日' : '—';
+    return `<tr><td>${m}</td><td>${r.insp.toLocaleString()}</td><td>${r.def}</td><td>${rate}</td><td>${avgD}</td><td>${r.count}</td></tr>`;
+  }).join('') || '<tr><td colspan="6" class="empty">データがありません</td></tr>';
+
+  if(imC1)imC1.destroy();
+  imC1=new Chart(document.getElementById('imChart1'),{type:'bar',data:{labels:imLabels,datasets:[{label:'確認数',data:iMonths.map(m=>iByMonth[m].insp),backgroundColor:'#7f77dd',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  if(imC2)imC2.destroy();
+  imC2=new Chart(document.getElementById('imChart2'),{type:'line',data:{labels:imLabels,datasets:[{label:'平均報告日数',data:iMonths.map(m=>{const d=iByMonth[m].days;return d.length>0?parseFloat((d.reduce((s,v)=>s+v,0)/d.length).toFixed(1)):0;}),borderColor:'#e07070',backgroundColor:'#fde8e8',tension:0.3,fill:true,pointRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
 }
 
 loadAll();
